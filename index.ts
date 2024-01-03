@@ -123,3 +123,8 @@ function main() {
   suggestClosestSubcommandIfExists(subcmdName);
   return 1;
 }
+
+if (require.main === module) {
+    console.log('Executing main...');
+    process.exit(main());
+  }
