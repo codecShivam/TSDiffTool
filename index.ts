@@ -128,3 +128,9 @@ if (require.main === module) {
     console.log('Executing main...');
     process.exit(main());
   }
+
+  const SUBCOMMANDS: Subcommand[] = [
+    new DiffSubcommand(),
+    new PatchSubcommand(),
+    new HelpSubcommand(),
+  ];
