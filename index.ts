@@ -19,6 +19,10 @@ class Subcommand {
     this.signature = signature;
     this.description = description;
   }
+  run(program: string, args: string[]): number {
+    console.log(`Running ${this.name} subcommand...`);
+    throw new Error("Method not implemented.");
+  }
 }
 
 function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
@@ -91,4 +95,31 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
 
   patch.reverse();
   return patch;
+}
+
+function main() {
+  const [program, ...args] = process.argv;
+
+  console.log("Arguments:", args);
+
+  if (args.length === 0) {
+    usage(program);
+    console.log("ERROR: no subcommand is provided");
+    return 1;
+  }
+
+  const [file, subcmdName, ...rest] = args;
+  console.log("File:", file);
+
+  console.log("Subcommand:", subcmdName);
+
+  const subcmd = findSubcommand(subcmdName);
+  if (subcmd) {
+    return subcmd.run(program, rest);
+  }
+
+  usage(program);
+  console.log(`ERROR: unknown subcommand ${subcmdName}`);
+  suggestClosestSubcommandIfExists(subcmdName);
+  return 1;
 }
