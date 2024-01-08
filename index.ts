@@ -1,16 +1,16 @@
-import * as fs from 'fs';
+import * as fs from "fs";
 
-type Action = 'I' | 'A' | 'R';
+type Action = "I" | "A" | "R";
 
 function readEntireFile(filePath: string): string {
   console.log(`Reading file: ${filePath}`);
-  const content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, "utf8");
   console.log(`File content: ${content}`);
   return content;
 }
 
 function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
-  console.log('Calculating edit distance...');
+  console.log("Calculating edit distance...");
   const m1 = s1.length;
   const m2 = s2.length;
   const distances: number[][] = [];
@@ -18,27 +18,27 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
 
   for (let i = 0; i < m1 + 1; i++) {
     distances.push(new Array(m2 + 1).fill(0));
-    actions.push(new Array(m2 + 1).fill('-'));
+    actions.push(new Array(m2 + 1).fill("-"));
   }
 
   distances[0][0] = 0;
-  actions[0][0] = 'I';
+  actions[0][0] = "I";
 
   for (let n2 = 1; n2 < m2 + 1; n2++) {
     distances[0][n2] = n2;
-    actions[0][n2] = 'A';
+    actions[0][n2] = "A";
   }
 
   for (let n1 = 1; n1 < m1 + 1; n1++) {
     distances[n1][0] = n1;
-    actions[n1][0] = 'R';
+    actions[n1][0] = "R";
   }
 
   for (let n1 = 1; n1 < m1 + 1; n1++) {
     for (let n2 = 1; n2 < m2 + 1; n2++) {
       if (s1[n1 - 1] === s2[n2 - 1]) {
         distances[n1][n2] = distances[n1 - 1][n2 - 1];
-        actions[n1][n2] = 'I';
+        actions[n1][n2] = "I";
         continue;
       }
 
@@ -46,11 +46,11 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
       const add = distances[n1][n2 - 1];
 
       distances[n1][n2] = remove;
-      actions[n1][n2] = 'R';
+      actions[n1][n2] = "R";
 
       if (distances[n1][n2] > add) {
         distances[n1][n2] = add;
-        actions[n1][n2] = 'A';
+        actions[n1][n2] = "A";
       }
 
       distances[n1][n2] += 1;
@@ -63,13 +63,13 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
 
   while (n1 > 0 || n2 > 0) {
     const action = actions[n1][n2];
-    if (action === 'A') {
+    if (action === "A") {
       n2 -= 1;
-      patch.push(['A', n2, s2[n2]]);
-    } else if (action === 'R') {
+      patch.push(["A", n2, s2[n2]]);
+    } else if (action === "R") {
       n1 -= 1;
-      patch.push(['R', n1, s1[n1]]);
-    } else if (action === 'I') {
+      patch.push(["R", n1, s1[n1]]);
+    } else if (action === "I") {
       n1 -= 1;
       n2 -= 1;
     } else {
@@ -102,7 +102,11 @@ class Subcommand {
 
 class DiffSubcommand extends Subcommand {
   constructor() {
-    super("diff", "<file1> <file2>", "print the difference between the files to stdout");
+    super(
+      "diff",
+      "<file1> <file2>",
+      "print the difference between the files to stdout"
+    );
   }
 
   run(program: string, args: string[]): number {
@@ -119,8 +123,8 @@ class DiffSubcommand extends Subcommand {
     console.log(`File 2 path: ${file_path2}`);
 
     try {
-      const lines1 = readEntireFile(file_path1).split('\n');
-      const lines2 = readEntireFile(file_path2).split('\n');
+      const lines1 = readEntireFile(file_path1).split("\n");
+      const lines2 = readEntireFile(file_path2).split("\n");
 
       console.log(`Lines in File 1: ${lines1.length}`);
       console.log(`Lines in File 2: ${lines2.length}`);
@@ -140,26 +144,33 @@ class DiffSubcommand extends Subcommand {
   }
 }
 
-
 class PatchSubcommand extends Subcommand {
   constructor() {
-    super("patch", "<file> <file.patch>", "patch the file with the given patch");
+    super(
+      "patch",
+      "<file> <file.patch>",
+      "patch the file with the given patch"
+    );
   }
 
   run(program: string, args: string[]): number {
     console.log(`Executing ${this.name} subcommand...`);
     if (args.length < 2) {
       console.log(`Usage: ${program} ${this.name} ${this.signature}`);
-      console.log(`ERROR: not enough arguments were provided to ${this.name} a file`);
+      console.log(
+        `ERROR: not enough arguments were provided to ${this.name} a file`
+      );
       return 1;
     }
 
     let [file_path, patch_path, ...rest] = args;
-    const lines = readEntireFile(file_path).split('\n');
+    const lines = readEntireFile(file_path).split("\n");
     const patch: [Action, number, string][] = [];
     let ok = true;
 
-    for (const [row, line] of readEntireFile(patch_path).split('\n').entries()) {
+    for (const [row, line] of readEntireFile(patch_path)
+      .split("\n")
+      .entries()) {
       if (line.length === 0) {
         continue;
       }
@@ -176,16 +187,16 @@ class PatchSubcommand extends Subcommand {
     }
 
     for (const [action, row, line] of patch.reverse()) {
-      if (action === 'A') {
+      if (action === "A") {
         lines.splice(row, 0, line);
-      } else if (action === 'R') {
+      } else if (action === "R") {
         lines.splice(row, 1);
       } else {
         throw new Error("unreachable");
       }
     }
 
-    fs.writeFileSync(file_path, lines.join('\n'));
+    fs.writeFileSync(file_path, lines.join("\n"));
     return 0;
   }
 }
@@ -226,7 +237,9 @@ const SUBCOMMANDS: Subcommand[] = [
 
 function usage(program: string): void {
   console.log(`Generating usage for ${program}...`);
-  const width = Math.max(...SUBCOMMANDS.map(subcmd => `${subcmd.name} ${subcmd.signature}`.length));
+  const width = Math.max(
+    ...SUBCOMMANDS.map((subcmd) => `${subcmd.name} ${subcmd.signature}`.length)
+  );
   console.log(`Usage: ${program} <SUBCOMMAND> [OPTIONS]`);
   console.log("Subcommands:");
   for (const subcmd of SUBCOMMANDS) {
@@ -237,10 +250,11 @@ function usage(program: string): void {
 
 function suggestClosestSubcommandIfExists(subcmdName: string): void {
   console.log(`Suggesting closest subcommand for: ${subcmdName}`);
-  const candidates = SUBCOMMANDS.filter(subcmd => {
-    // Assuming subcmdName and subcmd.name are strings
-    return editDistance(Array.from(subcmdName), Array.from(subcmd.name)).length < 3;
-  }).map(subcmd => subcmd.name);
+  const candidates = SUBCOMMANDS.filter((subcmd) => {
+    return (
+      editDistance(Array.from(subcmdName), Array.from(subcmd.name)).length < 3
+    );
+  }).map((subcmd) => subcmd.name);
 
   if (candidates.length > 0) {
     console.log("Maybe you meant:");
@@ -252,24 +266,24 @@ function suggestClosestSubcommandIfExists(subcmdName: string): void {
 
 function findSubcommand(subcmdName: string): Subcommand | undefined {
   console.log(`Finding subcommand: ${subcmdName}`);
-  return SUBCOMMANDS.find(subcmd => subcmd.name === subcmdName);
+  return SUBCOMMANDS.find((subcmd) => subcmd.name === subcmdName);
 }
 
 function main() {
   const [program, ...args] = process.argv;
 
-  console.log('Arguments:', args);
+  console.log("Arguments:", args);
 
   if (args.length === 0) {
     usage(program);
-    console.log('ERROR: no subcommand is provided');
+    console.log("ERROR: no subcommand is provided");
     return 1;
   }
 
-  const [fiel,subcmdName, ...rest] = args;
+  const [fiel, subcmdName, ...rest] = args;
 
-  console.log('Subcommand:', subcmdName);
-   
+  console.log("Subcommand:", subcmdName);
+
   const subcmd = findSubcommand(subcmdName);
   if (subcmd) {
     return subcmd.run(program, rest);
@@ -282,6 +296,6 @@ function main() {
 }
 
 if (require.main === module) {
-  console.log('Executing main...');
+  console.log("Executing main...");
   process.exit(main());
 }
