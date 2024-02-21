@@ -3,23 +3,26 @@ import * as fs from "fs";
 type Action = "I" | "A" | "R";
 
 function readEntireFile(filePath: string): string {
-  console.log(`Reading file: ${filePath}`);
+  // console.log(`Reading file: ${filePath}`);
   const content = fs.readFileSync(filePath, "utf8");
-  console.log(`File content: ${content}`);
+  // console.log(`File content: ${content}`);
   return content;
 }
 
 function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
-  console.log("Calculating edit distance...");
+  // console.log("Calculating edit distance...");
   const m1 = s1.length;
   const m2 = s2.length;
   const distances: number[][] = [];
   const actions: Action[][] = [];
 
+  // initialize the matrix with 0s and - for actions
   for (let i = 0; i < m1 + 1; i++) {
-    distances.push(new Array(m2 + 1).fill(0));
+    distances.push(new Array(m2 + 1).fill(0)); //
     actions.push(new Array(m2 + 1).fill("-"));
   }
+  // console.log("Distances:", distances);
+  // console.log("Actions:", actions);
 
   distances[0][0] = 0;
   actions[0][0] = "I";
@@ -28,6 +31,8 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
     distances[0][n2] = n2;
     actions[0][n2] = "A";
   }
+  // console.log("Distances:", distances);
+  // console.log("Actions:", actions);
 
   for (let n1 = 1; n1 < m1 + 1; n1++) {
     distances[n1][0] = n1;
@@ -95,7 +100,7 @@ class Subcommand {
   }
 
   run(program: string, args: string[]): number {
-    console.log(`Running ${this.name} subcommand...`);
+    // console.log(`Running ${this.name} subcommand...`);
     throw new Error("Method not implemented.");
   }
 }
@@ -110,7 +115,7 @@ class DiffSubcommand extends Subcommand {
   }
 
   run(program: string, args: string[]): number {
-    console.log(`Executing ${this.name} subcommand...`);
+    // console.log(`Executing ${this.name} subcommand...`);
     if (args.length < 2) {
       console.log(`Usage: ${program} ${this.name} ${this.signature}`);
       console.log(`ERROR: not enough files were provided to ${this.name}`);
@@ -119,19 +124,19 @@ class DiffSubcommand extends Subcommand {
 
     let [file_path1, file_path2, ...rest] = args;
 
-    console.log(`File 1 path: ${file_path1}`);
-    console.log(`File 2 path: ${file_path2}`);
+    // console.log(`File 1 path: ${file_path1}`);
+    // console.log(`File 2 path: ${file_path2}`);
 
     try {
       const lines1 = readEntireFile(file_path1).split("\n");
       const lines2 = readEntireFile(file_path2).split("\n");
 
-      console.log(`Lines in File 1: ${lines1.length}`);
-      console.log(`Lines in File 2: ${lines2.length}`);
+      // console.log(`Lines in File 1: ${lines1.length}`);
+      // console.log(`Lines in File 2: ${lines2.length}`);
 
       const patch = editDistance(lines1, lines2);
 
-      console.log("Edit Distance Patch:");
+      // console.log("Edit Distance Patch:");
       for (const [action, n, line] of patch) {
         console.log(`${action} ${n} ${line}`);
       }
@@ -265,14 +270,12 @@ function suggestClosestSubcommandIfExists(subcmdName: string): void {
 }
 
 function findSubcommand(subcmdName: string): Subcommand | undefined {
-  console.log(`Finding subcommand: ${subcmdName}`);
   return SUBCOMMANDS.find((subcmd) => subcmd.name === subcmdName);
 }
 
 function main() {
   const [program, ...args] = process.argv;
 
-  console.log("Arguments:", args);
 
   if (args.length === 0) {
     usage(program);
@@ -281,8 +284,6 @@ function main() {
   }
 
   const [fiel, subcmdName, ...rest] = args;
-
-  console.log("Subcommand:", subcmdName);
 
   const subcmd = findSubcommand(subcmdName);
   if (subcmd) {
@@ -296,6 +297,5 @@ function main() {
 }
 
 if (require.main === module) {
-  console.log("Executing main...");
   process.exit(main());
 }
