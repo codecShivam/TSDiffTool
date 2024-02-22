@@ -276,7 +276,6 @@ function findSubcommand(subcmdName: string): Subcommand | undefined {
 function main() {
   const [program, ...args] = process.argv;
 
-
   if (args.length === 0) {
     usage(program);
     console.log("ERROR: no subcommand is provided");

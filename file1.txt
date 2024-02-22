@@ -1,5 +1,5 @@
 This is a test file for reading purposes.
-Please ignore this text as it is only for testing.
+ignore this text as it is only for testing.
 Feel free to modify or delete it as needed.
-Adding more text to the file.
-This  is an additional line of text.
+Adding more text to the file
+This is an additional line of text.
