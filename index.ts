@@ -6,7 +6,6 @@ function readEntireFile(filePath: string): string {
   const content = fs.readFileSync(filePath, "utf8");
   return content;
 }
-
 function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
   const m1 = s1.length;
   const m2 = s2.length;
@@ -75,6 +74,10 @@ function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
   }
 
   patch.reverse();
+
+  // Sort the patch based on the original positions
+  patch.sort((a, b) => a[1] - b[1]);
+
   return patch;
 }
 
