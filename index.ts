@@ -3,87 +3,67 @@ import * as fs from "fs";
 type Action = "I" | "A" | "R";
 
 function readEntireFile(filePath: string): string {
-  // console.log(`Reading file: ${filePath}`);
   const content = fs.readFileSync(filePath, "utf8");
-  // console.log(`File content: ${content}`);
   return content;
 }
 
-function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
-  // console.log("Calculating edit distance...");
-  const m1 = s1.length;
-  const m2 = s2.length;
-  const distances: number[][] = [];
-  const actions: Action[][] = [];
+function editDistance(s1: string, s2: string): [Action, number, string][] {
+  const N = s1.length;
+  const M = s2.length;
 
-  // initialize the matrix with 0s and - for actions
-  for (let i = 0; i < m1 + 1; i++) {
-    distances.push(new Array(m2 + 1).fill(0)); //
-    actions.push(new Array(m2 + 1).fill("-"));
-  }
-  // console.log("Distances:", distances);
-  // console.log("Actions:", actions);
+  // Linear space vectors
+  let V: number[] = new Array(2 * Math.max(N, M) + 1).fill(0);
 
-  distances[0][0] = 0;
-  actions[0][0] = "I";
+  // Matrix to store the actions
+  let actions: [Action, number, string][] = [];
 
-  for (let n2 = 1; n2 < m2 + 1; n2++) {
-    distances[0][n2] = n2;
-    actions[0][n2] = "A";
-  }
-  // console.log("Distances:", distances);
-  // console.log("Actions:", actions);
-
-  for (let n1 = 1; n1 < m1 + 1; n1++) {
-    distances[n1][0] = n1;
-    actions[n1][0] = "R";
-  }
-
-  for (let n1 = 1; n1 < m1 + 1; n1++) {
-    for (let n2 = 1; n2 < m2 + 1; n2++) {
-      if (s1[n1 - 1] === s2[n2 - 1]) {
-        distances[n1][n2] = distances[n1 - 1][n2 - 1];
-        actions[n1][n2] = "I";
-        continue;
+  for (let d = 0; d <= N + M; d++) {
+    for (let k = -d; k <= d; k += 2) {
+      let x = 0;
+      if (k === -d || (k !== d && V[k - 1 + N] < V[k + 1 + N])) {
+        x = V[k + 1 + N];
+      } else {
+        x = V[k - 1 + N] + 1;
       }
 
-      const remove = distances[n1 - 1][n2];
-      const add = distances[n1][n2 - 1];
+      let y = x - k;
 
-      distances[n1][n2] = remove;
-      actions[n1][n2] = "R";
-
-      if (distances[n1][n2] > add) {
-        distances[n1][n2] = add;
-        actions[n1][n2] = "A";
+      while (x < N && y < M && s1[x] === s2[y]) {
+        x++;
+        y++;
       }
 
-      distances[n1][n2] += 1;
+      V[k + N] = x;
+
+      if (x >= N && y >= M) {
+        // Reached the end of both sequences
+        return actions;
+      }
+    }
+
+    for (let k = -d; k <= d; k += 2) {
+      let x = V[k + N];
+      let y = x - k;
+
+      while (x < N && y < M && s1[x] === s2[y]) {
+        x++;
+        y++;
+      }
+
+      V[k + N] = x;
+
+      if (k % 2 === 0 && x < N) {
+        // Action: Remove
+        actions.push(["R", x, s1[x]]);
+      } else if (k % 2 !== 0 && y < M) {
+        // Action: Add
+        actions.push(["A", y, s2[y]]);
+      }
     }
   }
 
-  const patch: [Action, number, T][] = [];
-  let n1 = m1;
-  let n2 = m2;
-
-  while (n1 > 0 || n2 > 0) {
-    const action = actions[n1][n2];
-    if (action === "A") {
-      n2 -= 1;
-      patch.push(["A", n2, s2[n2]]);
-    } else if (action === "R") {
-      n1 -= 1;
-      patch.push(["R", n1, s1[n1]]);
-    } else if (action === "I") {
-      n1 -= 1;
-      n2 -= 1;
-    } else {
-      throw new Error("unreachable");
-    }
-  }
-
-  patch.reverse();
-  return patch;
+  // If we reach here, it means we couldn't find the end of both sequences
+  return actions;
 }
 
 const PATCH_LINE_REGEXP: RegExp = /([AR]) (\d+) (.*)/;
@@ -128,13 +108,11 @@ class DiffSubcommand extends Subcommand {
     // console.log(`File 2 path: ${file_path2}`);
 
     try {
-      const lines1 = readEntireFile(file_path1).split("\n");
-      const lines2 = readEntireFile(file_path2).split("\n");
-
-      // console.log(`Lines in File 1: ${lines1.length}`);
-      // console.log(`Lines in File 2: ${lines2.length}`);
-
+      const lines1 = readEntireFile(file_path1).split("\n").join(""); // Join the lines into a single string
+      const lines2 = readEntireFile(file_path2).split("\n").join(""); // Join the lines into a single string
+      
       const patch = editDistance(lines1, lines2);
+      
 
       // console.log("Edit Distance Patch:");
       for (const [action, n, line] of patch) {
@@ -256,10 +234,13 @@ function usage(program: string): void {
 function suggestClosestSubcommandIfExists(subcmdName: string): void {
   console.log(`Suggesting closest subcommand for: ${subcmdName}`);
   const candidates = SUBCOMMANDS.filter((subcmd) => {
+    const subcmdNameString = subcmd.name; // Assume subcmd.name is already a string
     return (
-      editDistance(Array.from(subcmdName), Array.from(subcmd.name)).length < 3
+      editDistance(subcmdNameString, subcmdName as string).length < 3
     );
   }).map((subcmd) => subcmd.name);
+  
+  
 
   if (candidates.length > 0) {
     console.log("Maybe you meant:");
@@ -270,11 +251,14 @@ function suggestClosestSubcommandIfExists(subcmdName: string): void {
 }
 
 function findSubcommand(subcmdName: string): Subcommand | undefined {
+  console.log(`Finding subcommand: ${subcmdName}`);
   return SUBCOMMANDS.find((subcmd) => subcmd.name === subcmdName);
 }
 
 function main() {
   const [program, ...args] = process.argv;
+
+  console.log("Arguments:", args);
 
   if (args.length === 0) {
     usage(program);
@@ -283,6 +267,8 @@ function main() {
   }
 
   const [fiel, subcmdName, ...rest] = args;
+
+  console.log("Subcommand:", subcmdName);
 
   const subcmd = findSubcommand(subcmdName);
   if (subcmd) {
@@ -296,5 +282,6 @@ function main() {
 }
 
 if (require.main === module) {
+  console.log("Executing main...");
   process.exit(main());
 }
