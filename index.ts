@@ -6,77 +6,66 @@ function readEntireFile(filePath: string): string {
   const content = fs.readFileSync(filePath, "utf8");
   return content;
 }
+
 function editDistance<T>(s1: T[], s2: T[]): [Action, number, T][] {
   const m1 = s1.length;
   const m2 = s2.length;
-  const distances: number[][] = [];
-  const actions: Action[][] = [];
 
-  for (let i = 0; i < m1 + 1; i++) {
-    distances.push(new Array(m2 + 1).fill(0));
-    actions.push(new Array(m2 + 1).fill("-"));
-  }
+  function calculateDistances(strip: number[]): number[] {
+    const distances: number[] = [strip[0]];
 
-  distances[0][0] = 0;
-  actions[0][0] = "I";
-
-  for (let n2 = 1; n2 < m2 + 1; n2++) {
-    distances[0][n2] = n2;
-    actions[0][n2] = "A";
-  }
-
-  for (let n1 = 1; n1 < m1 + 1; n1++) {
-    distances[n1][0] = n1;
-    actions[n1][0] = "R";
-  }
-
-  for (let n1 = 1; n1 < m1 + 1; n1++) {
-    for (let n2 = 1; n2 < m2 + 1; n2++) {
-      if (s1[n1 - 1] === s2[n2 - 1]) {
-        distances[n1][n2] = distances[n1 - 1][n2 - 1];
-        actions[n1][n2] = "I";
-        continue;
-      }
-
-      const remove = distances[n1 - 1][n2];
-      const add = distances[n1][n2 - 1];
-
-      distances[n1][n2] = remove;
-      actions[n1][n2] = "R";
-
-      if (distances[n1][n2] > add) {
-        distances[n1][n2] = add;
-        actions[n1][n2] = "A";
-      }
-
-      distances[n1][n2] += 1;
+    for (let i = 1; i < m2 + 1; i++) {
+      distances[i] = Math.min(
+        distances[i - 1] + 1,
+        strip[i],
+        strip[i - 1] + (s1[m1 - strip[i - 1]] === s2[i - 1] ? 0 : 1)
+      );
     }
+    return distances;
   }
 
   const patch: [Action, number, T][] = [];
+  let strip1: number[] = new Array(m2 + 1).fill(0);
+  let strip2: number[] = new Array(m2 + 1).fill(0);
+  for (let i = 1; i < m1 + 1; i++) {
+    strip2[0] = i;
+
+    for (let j = 1; j < m2 + 1; j++) {
+      strip2[j] =
+        s1[i - 1] === s2[j - 1]
+          ? strip1[j - 1]
+          : Math.min(strip1[j - 1], strip1[j], strip2[j - 1]) + 1;
+    }
+
+    if (i < m1) {
+      strip1 = calculateDistances(strip2);
+    }
+  }
+
   let n1 = m1;
   let n2 = m2;
 
   while (n1 > 0 || n2 > 0) {
-    const action = actions[n1][n2];
-    if (action === "A") {
+    if (n1 === 0) {
       n2 -= 1;
       patch.push(["A", n2, s2[n2]]);
-    } else if (action === "R") {
+    } else if (n2 === 0) {
       n1 -= 1;
       patch.push(["R", n1, s1[n1]]);
-    } else if (action === "I") {
+    } else if (s1[n1 - 1] === s2[n2 - 1]) {
       n1 -= 1;
       n2 -= 1;
+    } else if (strip2[n2] === strip1[n1 - 1] + 1) {
+      n1 -= 1;
+      patch.push(["R", n1, s1[n1]]);
     } else {
-      throw new Error("unreachable");
+      n2 -= 1;
+      patch.push(["A", n2, s2[n2]]);
     }
   }
+  patch.sort((a, b) => a[1] - b[1]);
 
   patch.reverse();
-
-  // Sort the patch based on the original positions
-  patch.sort((a, b) => a[1] - b[1]);
 
   return patch;
 }
