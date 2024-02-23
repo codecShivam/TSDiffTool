@@ -13,7 +13,10 @@ TSDiffTool is an elegant file diffing and patching tool built in TypeScript, hig
 The core algorithm, utilizing dynamic programming for edit distance (Levenshtein distance), boasts the following complexities:
 
 - **Time Complexity:** O(N * M) (N and M are lengths of input files).
-- **Space Complexity:** O(N * M) for storing the distance matrix.
+- **Space Complexity:** O(min(N , M)) for storing the distance matrix.
+
+The time complexity of the edit distance algorithm is O(N * M) in the worst case. However, Hirschberg's algorithm might have a smaller constant factor, leading to potentially better performance in practice.
+
 
 ## Usage
 
