@@ -1,4 +1,4 @@
-# TSDiffTool: Professional TypeScript-Powered File Diff Tool
+# TSDiffTool: TypeScript-Powered File Diff Tool
 
 TSDiffTool is an elegant file diffing and patching tool built in TypeScript, highlighting edit distance and patch generation concepts.
 
