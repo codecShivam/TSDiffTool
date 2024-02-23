@@ -36,8 +36,7 @@ The core algorithm, utilizing dynamic programming for edit distance (Levenshtein
    - `<file.patch>`: The patch file generated from the diff operation.
 
 ## Examples
-
-Explore the `examples` directory for practical usage scenarios.
+Explore the - [`examples`](examples/example.md) directory for practical usage scenarios.
 
 ## Code Overview
 
