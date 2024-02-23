@@ -30,9 +30,9 @@ The core algorithm, utilizing dynamic programming for edit distance (Levenshtein
 
 3. **Apply a Patch:**
    ```bash
-   ts-node index.ts patch <file> <file.patch>
+   ts-node index.ts patch <file1> <file.patch>
    ```
-   - `<file>`: The path to the text file you want to patch.
+   - `<file1>`: The path to the text file you want to patch.
    - `<file.patch>`: The patch file generated from the diff operation.
 
 ## Examples
