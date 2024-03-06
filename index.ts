@@ -93,7 +93,7 @@ class DiffSubcommand extends Subcommand {
     super(
       "diff",
       "<file1> <file2>",
-      "print the difference between the files to stdout"
+      "print the difference between the files"
     );
   }
 
